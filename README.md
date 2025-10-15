@@ -1,122 +1,73 @@
-package com.example.scheduleapp;
+using System;
+using System.Drawing;
+using System.Windows.Forms;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
+namespace ExpressionCalculator
+{
+    public class Form1 : Form
+    {
+        private Button btnCalculate;
+        private TextBox txtX, txtY, txtZ, txtResult;
 
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Bundle;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
+        public Form1()
+        {
+            this.Size = new Size(400, 300);
+            this.Text = "Expression Calculator";
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
-public class MainActivity extends AppCompatActivity {
-
-    private static final int PICK_JSON_FILE = 1;
-
-    private Button loadFileButton;
-    private TextView scheduleTextView;
-    private Button switchTermButton;
-    private String currentTerm = "chislitel";
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        loadFileButton = findViewById(R.id.loadFileButton);
-        scheduleTextView = findViewById(R.id.scheduleTextView);
-        switchTermButton = findViewById(R.id.switchTermButton);
-
-        loadFileButton.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("*/*");
-            startActivityForResult(Intent.createChooser(intent, "Select a JSON file"), PICK_JSON_FILE);
-        });
-
-        switchTermButton.setOnClickListener(v -> {
-            if (currentTerm.equals("chislitel")) {
-                currentTerm = "zn";
-            } else {
-                currentTerm = "chislitel";
-            }
-            try {
-                String schedule = parseSchedule(jsonObject);
-                scheduleTextView.setText(schedule);
-            } catch (JSONException e) {
-                e.printStackTrace();
-                Toast.makeText(this, "Error parsing JSON", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == PICK_JSON_FILE && resultCode == RESULT_OK) {
-            try {
-                Uri fileUri = data.getData();
-                InputStream inputStream = getContentResolver().openInputStream(fileUri);
-                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-                StringBuilder sb = new StringBuilder();
-                String line;
-
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line);
-                }
-
-                jsonObject = new JSONObject(sb.toString());
-                String schedule = parseSchedule(jsonObject);
-                scheduleTextView.setText(schedule);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                Toast.makeText(this, "File not found", Toast.LENGTH_SHORT).show();
-            } catch (Exception e) {
-                e.printStackTrace();
-                Toast.makeText(this, "Error reading file", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    private JSONObject jsonObject;
-
-    private String parseDaySchedule(JSONObject jsonObject, String day, String term) throws JSONException {
-        StringBuilder daySchedule = new StringBuilder();
-        JSONArray dayArray = jsonObject.getJSONArray(day + "_" + term);
-        daySchedule.append(day).append(" ").append(term).append("\n");
-
-        for (int i = 0; i < dayArray.length(); i++) {
-            daySchedule.append(dayArray.getString(i)).append("\n");
+            // Создаем элементы управления
+            CreateControls();
         }
 
-        return daySchedule.toString();
-    }
+        private void CreateControls()
+        {
+            // Поле X
+            new Label { Text = "X:", Location = new Point(20, 20), Parent = this };
+            txtX = new TextBox { Location = new Point(100, 20), Width = 200, Text = "-4,5", Parent = this };
 
-    private String parseSchedule(JSONObject jsonObject) throws JSONException {
-        StringBuilder schedule = new StringBuilder();
-        schedule.append("Version: ").append(jsonObject.getString("version")).append("\n");
-        schedule.append("Group: ").append(jsonObject.getString("group")).append("\n");
-        schedule.append("Subjects: ").append(jsonObject.getJSONArray("subjects").join(", ")).append("\n");
+            // Поле Y
+            new Label { Text = "Y:", Location = new Point(20, 50), Parent = this };
+            txtY = new TextBox { Location = new Point(100, 50), Width = 200, Text = "0,000075", Parent = this };
 
-        String[] days = {"monday", "tuesday", "wednesday", "Thursday", "Friday", "Saturday"};
-        String[] terms = {"chislitel", "zn"};
+            // Поле Z
+            new Label { Text = "Z:", Location = new Point(20, 80), Parent = this };
+            txtZ = new TextBox { Location = new Point(100, 80), Width = 200, Text = "84,5", Parent = this };
 
-        for (String day : days) {
-            for (String term : terms) {
-                schedule.append(parseDaySchedule(jsonObject, day, term)).append("\n");
+            // Результат
+            new Label { Text = "Result:", Location = new Point(20, 110), Parent = this };
+            txtResult = new TextBox { Location = new Point(100, 110), Width = 200, ReadOnly = true, Parent = this };
+
+            // Кнопка
+            btnCalculate = new Button { Text = "Calculate", Location = new Point(100, 150), Width = 100, Parent = this };
+            btnCalculate.Click += (s, e) => Calculate();
+        }
+
+        private void Calculate()
+        {
+            try
+            {
+                double x = double.Parse(txtX.Text.Replace(".", ","));
+                double y = double.Parse(txtY.Text.Replace(".", ","));
+                double z = double.Parse(txtZ.Text.Replace(".", ","));
+
+                double absDiff = Math.Abs(x - y);
+                double firstPart = Math.Pow(8 + Math.Pow(absDiff, 2) + 1, 1.0 / 3.0);
+                double tanZSquaredPlusOne = Math.Pow(Math.Tan(z), 2) + 1;
+                double secondPart = Math.Exp(absDiff) * Math.Pow(tanZSquaredPlusOne, x);
+                double result = firstPart - secondPart;
+
+                txtResult.Text = result.ToString("F6");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message);
             }
         }
 
-        return schedule.toString();
+        [STAThread]
+        static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.Run(new Form1());
+        }
     }
 }
