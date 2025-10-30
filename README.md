@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Text;
 
 namespace PowerOfTwoCalculator
 {
@@ -20,7 +21,7 @@ namespace PowerOfTwoCalculator
         {
             // Настройка формы
             this.Text = "Вычисление 2^n";
-            this.ClientSize = new Size(400, 200);
+            this.ClientSize = new Size(500, 250);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.Font = new Font("Arial", 10);
             this.Padding = new Padding(10);
@@ -28,8 +29,8 @@ namespace PowerOfTwoCalculator
             // Заголовок
             this.lblTitle = new Label();
             this.lblTitle.Location = new Point(20, 20);
-            this.lblTitle.Size = new Size(350, 25);
-            this.lblTitle.Text = "Введите натуральное число n (0-62):";
+            this.lblTitle.Size = new Size(450, 25);
+            this.lblTitle.Text = "Введите натуральное число n:";
             this.lblTitle.Font = new Font("Arial", 11, FontStyle.Bold);
             
             // Поле для ввода числа
@@ -48,7 +49,7 @@ namespace PowerOfTwoCalculator
             // Метка результата
             this.lblResult = new Label();
             this.lblResult.Location = new Point(20, 100);
-            this.lblResult.Size = new Size(350, 80);
+            this.lblResult.Size = new Size(450, 120);
             this.lblResult.Text = "Результат: ";
             this.lblResult.BorderStyle = BorderStyle.FixedSingle;
             this.lblResult.BackColor = Color.LightYellow;
@@ -69,6 +70,30 @@ namespace PowerOfTwoCalculator
             }
         }
 
+        // Функция для умножения числа в строковой форме на 2
+        private string MultiplyByTwo(string number)
+        {
+            StringBuilder result = new StringBuilder();
+            int carry = 0;
+            
+            // Проходим по цифрам числа справа налево
+            for (int i = number.Length - 1; i >= 0; i--)
+            {
+                int digit = int.Parse(number[i].ToString());
+                int product = digit * 2 + carry;
+                result.Insert(0, (product % 10).ToString());
+                carry = product / 10;
+            }
+            
+            // Если есть остаток, добавляем его в начало
+            if (carry > 0)
+            {
+                result.Insert(0, carry.ToString());
+            }
+            
+            return result.ToString();
+        }
+
         private void CalculateButton_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtNumber.Text))
@@ -77,40 +102,41 @@ namespace PowerOfTwoCalculator
                 return;
             }
 
-            if (int.TryParse(txtNumber.Text, out int n) && n >= 0 && n <= 62)
+            if (int.TryParse(txtNumber.Text, out int n) && n >= 0)
             {
                 try
                 {
-                    // Вычисляем 2^n с помощью типа long (максимум 2^63-1)
-                    long result = 1L;
+                    string result;
                     
                     if (n == 0)
-                    {
-                        result = 1; // 2^0 = 1
+{
+                        result = "1"; // 2^0 = 1
                     }
                     else
                     {
-                        result = 1L << n; // Побитовый сдвиг для вычисления 2^n
+                        // Начинаем с 1 и умножаем на 2 n раз
+                        result = "1";
+                        for (int i = 0; i < n; i++)
+                        {
+                            result = MultiplyByTwo(result);
+                        }
                     }
                     
-                    lblResult.Text = $"2^{n} = {result:N0}";
+                    lblResult.Text = $"2^{n} = {result}";
                 }
                 catch (Exception ex)
                 {
                     lblResult.Text = $"Ошибка вычисления: {ex.Message}";
                 }
             }
-            else if (n > 62)
-            {
-                lblResult.Text = "Ошибка: число слишком большое. Используйте n ≤ 62";
-            }
             else
             {
-                lblResult.Text = "Ошибка: введите натуральное число (0 ≤ n ≤ 62)";
+                lblResult.Text = "Ошибка: введите натуральное число (n ≥ 0)";
             }
         }
     }
-internal static class Program
+
+    internal static class Program
     {
         [STAThread]
         private static void Main()
