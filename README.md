@@ -2,84 +2,82 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace NumberTransformation
+namespace NumberTransformationApp
 {
-    public partial class MainForm : Form
+    public class TransformationForm : Form
     {
-        private TextBox txtX;
-        private TextBox txtY;
-        private TextBox txtZ;
+        private TextBox txtX, txtY, txtZ;
         private Button btnCalculate;
-        private Label lblResult;
-        private Label lblX;
-        private Label lblY;
-        private Label lblZ;
+        private Label lblResult, lblX, lblY, lblZ;
 
-        public MainForm()
+        public TransformationForm()
         {
-            InitializeForm();
+            BuildForm();
         }
 
-        private void InitializeForm()
+        private void BuildForm()
         {
             // Настройка формы
-            this.Text = "Преобразование чисел";
-            this.ClientSize = new Size(400, 250);
-            this.StartPosition = FormStartPosition.CenterScreen;
-            this.Font = new Font("Arial", 10);
+            Text = "Преобразование чисел";
+            Size = new Size(450, 300);
+            StartPosition = FormStartPosition.CenterScreen;
+            Font = new Font("Arial", 10);
+            Padding = new Padding(10);
+            
+            // Создаем таблицу для размещения элементов
+            TableLayoutPanel mainTable = new TableLayoutPanel();
+            mainTable.Dock = DockStyle.Fill;
+            mainTable.ColumnCount = 2;
+            mainTable.RowCount = 5;
+            mainTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 100));
+            mainTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             
             // Метка и поле для X
-            this.lblX = new Label();
-            this.lblX.Location = new Point(20, 20);
-            this.lblX.Size = new Size(100, 20);
-            this.lblX.Text = "Число X:";
-            
-            this.txtX = new TextBox();
-            this.txtX.Location = new Point(120, 20);
-            this.txtX.Size = new Size(100, 20);
+            lblX = new Label { Text = "Число X:", AutoSize = true, Anchor = AnchorStyles.Left };
+            txtX = new TextBox { Anchor = AnchorStyles.Left | AnchorStyles.Right };
             
             // Метка и поле для Y
-            this.lblY = new Label();
-            this.lblY.Location = new Point(20, 50);
-            this.lblY.Size = new Size(100, 20);
-            this.lblY.Text = "Число Y:";
-            
-            this.txtY = new TextBox();
-            this.txtY.Location = new Point(120, 50);
-            this.txtY.Size = new Size(100, 20);
+            lblY = new Label { Text = "Число Y:", AutoSize = true, Anchor = AnchorStyles.Left };
+            txtY = new TextBox { Anchor = AnchorStyles.Left | AnchorStyles.Right };
             
             // Метка и поле для Z
-            this.lblZ = new Label();
-            this.lblZ.Location = new Point(20, 80);
-            this.lblZ.Size = new Size(100, 20);
-            this.lblZ.Text = "Число Z:";
+            lblZ = new Label { Text = "Число Z:", AutoSize = true, Anchor = AnchorStyles.Left };
+            txtZ = new TextBox { Anchor = AnchorStyles.Left | AnchorStyles.Right };
             
-            this.txtZ = new TextBox();
-            this.txtZ.Location = new Point(120, 80);
-            this.txtZ.Size = new Size(100, 20);
+            // Кнопка вычисления (занимает две колонки)
+            btnCalculate = new Button 
+            { 
+                Text = "Выполнить преобразование",
+                Anchor = AnchorStyles.Left | AnchorStyles.Right,
+                Height = 35
+            };
+            btnCalculate.Click += CalculateButton_Click;
             
-            // Кнопка вычисления
-            this.btnCalculate = new Button();
-            this.btnCalculate.Location = new Point(20, 120);
-            this.btnCalculate.Size = new Size(200, 30);
-            this.btnCalculate.Text = "Выполнить преобразование";
-            this.btnCalculate.Click += new EventHandler(this.CalculateButton_Click);
+            // Метка результата (занимает две колонки)
+            lblResult = new Label 
+            { 
+                Text = "Результат: ",
+                AutoSize = false,
+                Height = 60,
+                Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom,
+                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = Color.LightYellow
+            };
             
-            // Метка результата
-            this.lblResult = new Label();
-            this.lblResult.Location = new Point(20, 170);
-            this.lblResult.Size = new Size(350, 60);
-            this.lblResult.Text = "Результат: ";
+            // Добавляем элементы в таблицу
+            mainTable.Controls.Add(lblX, 0, 0);
+            mainTable.Controls.Add(txtX, 1, 0);
+            mainTable.Controls.Add(lblY, 0, 1);
+            mainTable.Controls.Add(txtY, 1, 1);
+            mainTable.Controls.Add(lblZ, 0, 2);
+            mainTable.Controls.Add(txtZ, 1, 2);
+            mainTable.SetColumnSpan(btnCalculate, 2);
+            mainTable.Controls.Add(btnCalculate, 0, 3);
+            mainTable.SetColumnSpan(lblResult, 2);
+            mainTable.Controls.Add(lblResult, 0, 4);
             
-            // Добавление элементов на форму
-            this.Controls.Add(this.lblX);
-            this.Controls.Add(this.txtX);
-            this.Controls.Add(this.lblY);
-            this.Controls.Add(this.txtY);
-            this.Controls.Add(this.lblZ);
-            this.Controls.Add(this.txtZ);
-            this.Controls.Add(this.btnCalculate);
-            this.Controls.Add(this.lblResult);
+            // Добавляем таблицу на форму
+            Controls.Add(mainTable);
         }
 
         private void CalculateButton_Click(object sender, EventArgs e)
@@ -89,59 +87,72 @@ namespace NumberTransformation
                 double.TryParse(txtZ.Text, out double z))
             {
                 // Проверяем, что числа попарно различные
-                if (x == y  x == z  y == z)
+                if (Math.Abs(x - y) < 0.000001  Math.Abs(x - z) < 0.000001  Math.Abs(y - z) < 0.000001)
                 {
                     lblResult.Text = "Ошибка: числа должны быть попарно различными";
                     return;
                 }
 
-                double newX = x, newY = y, newZ = z;
+                double originalX = x, originalY = y, originalZ = z;
+string operation = "";
                 
                 if (x + y + z < 1)
                 {
                     // Если сумма меньше 1, находим наименьшее из трех чисел
                     double min = Math.Min(x, Math.Min(y, z));
                     
-                    if (min == x)
-                        newX = (y + z) / 2;else if (min == y)
-                        newY = (x + z) / 2;
+                    if (Math.Abs(min - x) < 0.000001)
+                    {
+                        x = (y + z) / 2;
+                        operation = $"Наименьшее число X = {originalX:F2} заменено полусуммой Y и Z: ({originalY:F2} + {originalZ:F2}) / 2";
+                    }
+                    else if (Math.Abs(min - y) < 0.000001)
+                    {
+                        y = (x + z) / 2;
+                        operation = $"Наименьшее число Y = {originalY:F2} заменено полусуммой X и Z: ({originalX:F2} + {originalZ:F2}) / 2";
+                    }
                     else
-                        newZ = (x + y) / 2;
+                    {
+                        z = (x + y) / 2;
+                        operation = $"Наименьшее число Z = {originalZ:F2} заменено полусуммой X и Y: ({originalX:F2} + {originalY:F2}) / 2";
+                    }
                     
-                    lblResult.Text = $"Сумма чисел < 1.\nНаименьшее число заменено полусуммой двух других.\nРезультат: X = {newX:F2}, Y = {newY:F2}, Z = {newZ:F2}";
+                    lblResult.Text = $"Сумма чисел ({originalX:F2} + {originalY:F2} + {originalZ:F2} = {originalX + originalY + originalZ:F2}) < 1\n{operation}\n\nРезультат:\nX = {x:F2}\nY = {y:F2}\nZ = {z:F2}";
                 }
                 else
                 {
                     // Если сумма >= 1, находим меньшее из X и Y
                     if (x < y)
                     {
-                        newX = (y + z) / 2;
-                        lblResult.Text = $"Сумма чисел >= 1.\nМеньшее из X и Y (X) заменено полусуммой двух других.\nРезультат: X = {newX:F2}, Y = {newY:F2}, Z = {newZ:F2}";
+                        double oldX = x;
+                        x = (y + z) / 2;
+                        operation = $"Меньшее из X и Y (X = {oldX:F2}) заменено полусуммой Y и Z: ({originalY:F2} + {originalZ:F2}) / 2";
                     }
                     else
                     {
-                        newY = (x + z) / 2;
-                        lblResult.Text = $"Сумма чисел >= 1.\nМеньшее из X и Y (Y) заменено полусуммой двух других.\nРезультат: X = {newX:F2}, Y = {newY:F2}, Z = {newZ:F2}";
+                        double oldY = y;
+                        y = (x + z) / 2;
+                        operation = $"Меньшее из X и Y (Y = {oldY:F2}) заменено полусуммой X и Z: ({originalX:F2} + {originalZ:F2}) / 2";
                     }
+                    
+                    lblResult.Text = $"Сумма чисел ({originalX:F2} + {originalY:F2} + {originalZ:F2} = {originalX + originalY + originalZ:F2}) >= 1\n{operation}\n\nРезультат:\nX = {x:F2}\nY = {y:F2}\nZ = {z:F2}";
                 }
             }
             else
             {
-                lblResult.Text = "Ошибка: введите корректные числа";
+                lblResult.Text = "Ошибка: введите корректные действительные числа";
             }
         }
     }
 
-    public static class Program
+    internal static class Program
     {
         [STAThread]
-        public static void Main()
+        private static void Main()
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+            Application.Run(new TransformationForm());
         }
     }
 }
-
-
