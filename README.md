@@ -1,36 +1,52 @@
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+
 namespace RectangleDraw
 {
-    partial class Form1
+    public class MainForm : Form
     {
-        private System.ComponentModel.IContainer components = null;
-
-        protected override void Dispose(bool disposing)
+        public MainForm()
         {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
+            InitializeComponent();
         }
-
-        #region Windows Form Designer generated code
 
         private void InitializeComponent()
         {
             this.SuspendLayout();
             // 
-            // Form1
+            // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 261);
-            this.Name = "Form1";
+            this.AutoScaleDimensions = new SizeF(6F, 13F);
+            this.AutoScaleMode = AutoScaleMode.Font;
+            this.ClientSize = new Size(300, 250);
+            this.Name = "MainForm";
             this.Text = "Прямоугольник";
-            this.Paint += new System.Windows.Forms.PaintEventHandler(this.Form1_Paint);
+            this.Paint += new PaintEventHandler(this.MainForm_Paint);
             this.ResumeLayout(false);
-
         }
 
-        #endregion
+        private void MainForm_Paint(object sender, PaintEventArgs e)
+        {
+            using (Pen pen = new Pen(Color.Blue, 2))
+            {
+                Point[] points =
+                {
+                    new Point(80, 80),
+                    new Point(170, 80),
+                    new Point(170, 150),
+                    new Point(80, 150)
+                };
+                e.Graphics.DrawPolygon(pen, points);
+            }
+        }
+
+        [STAThread]
+        static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new MainForm());
+        }
     }
 }
