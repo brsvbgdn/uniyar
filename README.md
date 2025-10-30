@@ -1,4 +1,4 @@
-using System;
+ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -6,17 +6,17 @@ namespace EquilateralTriangleArea
 {
     public partial class MainForm : Form
     {
-        private TextBox sideTextBox;
-        private Button calculateButton;
-        private Label resultLabel;
-        private Label promptLabel;
+        private TextBox txtSide;
+        private Button btnCalculate;
+        private Label lblResult;
+        private Label lblPrompt;
 
         public MainForm()
         {
-            InitializeComponent();
+            SetupForm();
         }
 
-        private void InitializeComponent()
+        private void SetupForm()
         {
             // Настройка формы
             this.Text = "Площадь равностороннего треугольника";
@@ -24,46 +24,46 @@ namespace EquilateralTriangleArea
             this.StartPosition = FormStartPosition.CenterScreen;
             
             // Метка-подсказка
-            this.promptLabel = new Label();
-            this.promptLabel.Location = new Point(20, 20);
-            this.promptLabel.Size = new Size(100, 15);
-            this.promptLabel.Text = "Длина стороны:";
+            this.lblPrompt = new Label();
+            this.lblPrompt.Location = new Point(20, 20);
+            this.lblPrompt.Size = new Size(100, 15);
+            this.lblPrompt.Text = "Длина стороны:";
             
             // Поле ввода
-            this.sideTextBox = new TextBox();
-            this.sideTextBox.Location = new Point(20, 40);
-            this.sideTextBox.Size = new Size(100, 20);
+            this.txtSide = new TextBox();
+            this.txtSide.Location = new Point(20, 40);
+            this.txtSide.Size = new Size(100, 20);
             
             // Кнопка вычисления
-            this.calculateButton = new Button();
-            this.calculateButton.Location = new Point(130, 38);
-            this.calculateButton.Size = new Size(150, 25);
-            this.calculateButton.Text = "Вычислить площадь";
-            this.calculateButton.Click += new EventHandler(this.CalculateButton_Click);
+            this.btnCalculate = new Button();
+            this.btnCalculate.Location = new Point(130, 38);
+            this.btnCalculate.Size = new Size(150, 25);
+            this.btnCalculate.Text = "Вычислить площадь";
+            this.btnCalculate.Click += new EventHandler(this.CalculateButton_Click);
             
             // Метка результата
-            this.resultLabel = new Label();
-            this.resultLabel.Location = new Point(20, 80);
-            this.resultLabel.Size = new Size(250, 30);
-            this.resultLabel.Text = "Результат: ";
+            this.lblResult = new Label();
+            this.lblResult.Location = new Point(20, 80);
+            this.lblResult.Size = new Size(250, 30);
+            this.lblResult.Text = "Результат: ";
             
             // Добавление элементов на форму
-            this.Controls.Add(this.promptLabel);
-            this.Controls.Add(this.sideTextBox);
-            this.Controls.Add(this.calculateButton);
-            this.Controls.Add(this.resultLabel);
+            this.Controls.Add(this.lblPrompt);
+            this.Controls.Add(this.txtSide);
+            this.Controls.Add(this.btnCalculate);
+            this.Controls.Add(this.lblResult);
         }
 
         private void CalculateButton_Click(object sender, EventArgs e)
         {
-            if (double.TryParse(sideTextBox.Text, out double side) && side > 0)
+            if (double.TryParse(txtSide.Text, out double side) && side > 0)
             {
                 double area = (Math.Sqrt(3) / 4) * Math.Pow(side, 2);
-                resultLabel.Text = $"Площадь: {area:F2}";
+                lblResult.Text = $"Площадь: {area:F2}";
             }
             else
             {
-                resultLabel.Text = "Ошибка: введите положительное число";
+                lblResult.Text = "Ошибка: введите положительное число";
             }
         }
     }
