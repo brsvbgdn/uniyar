@@ -1,59 +1,74 @@
 using System;
 using System.Windows.Forms;
 
-namespace WindowsFormsApp1
+namespace EquilateralTriangleArea
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
-        public Form1()
+        private TextBox sideTextBox;
+        private Button calculateButton;
+        private Label resultLabel;
+
+        public MainForm()
         {
             InitializeComponent();
         }
 
-        // Функция f(x)
-        double f(double x)
+        private void InitializeComponent()
         {
-            // Здесь можешь подставить нужную формулу
-            // Например: f(x) = sin(x) + cos(x)
-            return Math.Sin(x) + Math.Cos(x);
+            this.sideTextBox = new TextBox();
+            this.calculateButton = new Button();
+            this.resultLabel = new Label();
+            
+            // Настройка формы
+            this.Text = "Площадь равностороннего треугольника";
+            this.ClientSize = new System.Drawing.Size(300, 150);
+            this.StartPosition = FormStartPosition.CenterScreen;
+            
+            // Настройка поля ввода
+            this.sideTextBox.Location = new System.Drawing.Point(20, 20);
+            this.sideTextBox.Size = new System.Drawing.Size(100, 20);
+            this.sideTextBox.PlaceholderText = "Длина стороны";
+            
+            // Настройка кнопки
+            this.calculateButton.Location = new System.Drawing.Point(130, 18);
+            this.calculateButton.Size = new System.Drawing.Size(150, 25);
+            this.calculateButton.Text = "Вычислить площадь";
+            this.calculateButton.Click += new EventHandler(this.CalculateButton_Click);
+            
+            // Настройка метки результата
+            this.resultLabel.Location = new System.Drawing.Point(20, 60);
+            this.resultLabel.Size = new System.Drawing.Size(250, 30);
+            this.resultLabel.Text = "Результат: ";
+            
+            // Добавление элементов на форму
+            this.Controls.Add(this.sideTextBox);
+            this.Controls.Add(this.calculateButton);
+            this.Controls.Add(this.resultLabel);
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void CalculateButton_Click(object sender, EventArgs e)
         {
-            try
+            if (double.TryParse(sideTextBox.Text, out double side) && side > 0)
             {
-                // Получение исходных данных
-                double x = Convert.ToDouble(textBox1.Text);
-                double y = Convert.ToDouble(textBox2.Text);
-                double z = Convert.ToDouble(textBox3.Text); // z вводится, но не участвует в формуле (если нужно – можно добавить)
-
-                double s;
-
-                // Вычисление по условиям
-                if (1 < x * y && x * y < 10)
-                {
-                    s = Math.Exp(f(x));
-                }
-                else if (12 < x * y && x * y < 40)
-                {
-                    s = Math.Sqrt(f(x) + 4 * y);
-                }
-                else
-                {
-                    s = y * Math.Pow(f(x), 2);
-                }
-
-                // Вывод результата
-                textBox4.Text = "Результаты работы программы студента Петрова И.И." + Environment.NewLine;
-                textBox4.Text += $"При X = {x}" + Environment.NewLine;
-                textBox4.Text += $"При Y = {y}" + Environment.NewLine;
-                textBox4.Text += $"При Z = {z}" + Environment.NewLine;
-                textBox4.Text += $"S = {s:F4}" + Environment.NewLine;
+                double area = (Math.Sqrt(3) / 4) * Math.Pow(side, 2);
+                resultLabel.Text = $"Площадь: {area:F2}";
             }
-            catch (Exception ex)
+            else
             {
-                MessageBox.Show("Ошибка ввода данных: " + ex.Message);
+                resultLabel.Text = "Ошибка: введите положительное число";
             }
+        }
+    }
+
+    public static class Program
+    {
+        [STAThread]
+        public static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new MainForm());
         }
     }
 }
