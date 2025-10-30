@@ -1,7 +1,6 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using System.Numerics;
 
 namespace PowerOfTwoCalculator
 {
@@ -30,7 +29,7 @@ namespace PowerOfTwoCalculator
             this.lblTitle = new Label();
             this.lblTitle.Location = new Point(20, 20);
             this.lblTitle.Size = new Size(350, 25);
-            this.lblTitle.Text = "Введите натуральное число n:";
+            this.lblTitle.Text = "Введите натуральное число n (0-62):";
             this.lblTitle.Font = new Font("Arial", 11, FontStyle.Bold);
             
             // Поле для ввода числа
@@ -78,12 +77,22 @@ namespace PowerOfTwoCalculator
                 return;
             }
 
-            if (int.TryParse(txtNumber.Text, out int n) && n >= 0)
+            if (int.TryParse(txtNumber.Text, out int n) && n >= 0 && n <= 62)
             {
                 try
                 {
-                    // Вычисляем 2^n с помощью BigInteger для работы с большими числами
-                    BigInteger result = BigInteger.Pow(2, n);
+                    // Вычисляем 2^n с помощью типа long (максимум 2^63-1)
+                    long result = 1L;
+                    
+                    if (n == 0)
+                    {
+                        result = 1; // 2^0 = 1
+                    }
+                    else
+                    {
+                        result = 1L << n; // Побитовый сдвиг для вычисления 2^n
+                    }
+                    
                     lblResult.Text = $"2^{n} = {result:N0}";
                 }
                 catch (Exception ex)
@@ -91,14 +100,17 @@ namespace PowerOfTwoCalculator
                     lblResult.Text = $"Ошибка вычисления: {ex.Message}";
                 }
             }
+            else if (n > 62)
+            {
+                lblResult.Text = "Ошибка: число слишком большое. Используйте n ≤ 62";
+            }
             else
             {
-                lblResult.Text = "Ошибка: введите натуральное число (n ≥ 0)";
+                lblResult.Text = "Ошибка: введите натуральное число (0 ≤ n ≤ 62)";
             }
         }
     }
-
-    internal static class Program
+internal static class Program
     {
         [STAThread]
         private static void Main()
@@ -109,10 +121,3 @@ namespace PowerOfTwoCalculator
         }
     }
 }
-
-
-
-
-
-
-
