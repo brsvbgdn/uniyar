@@ -1,138 +1,90 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using System.Linq;
 
-namespace ProductCalculator
+namespace FunctionGraph
 {
-    public class MainForm : Form
+    public partial class Form1 : Form
     {
-        private TextBox txtNumbers;
-        private Button btnCalculate;
-        private Label lblResult;
-        private Label lblPrompt;
-        private Button btnClear;
-
-        public MainForm()
+        public Form1()
         {
             InitializeComponent();
+            this.Size = new Size(800, 600);
+            this.Text = "Graph of Function";
+            this.Paint += new PaintEventHandler(Form1_Paint);
         }
 
-        private void InitializeComponent()
+        private void Form1_Paint(object sender, PaintEventArgs e)
         {
-            // Настройка формы
-            this.SuspendLayout();
-            this.Text = "Вычисление произведения чисел";
-            this.ClientSize = new Size(300, 220);
-            this.StartPosition = FormStartPosition.CenterScreen;
-            this.Font = new Font("Microsoft Sans Serif", 8.25F);
+            double x0 = 1.75;
+            double xk = -2.5;
+            double dx = -0.25;
+            double b = 35.4;
 
-            // Поле ввода чисел
-            this.txtNumbers = new TextBox();
-            this.txtNumbers.Location = new Point(15, 35);
-            this.txtNumbers.Multiline = true;
-            this.txtNumbers.Size = new Size(270, 80);
-            this.txtNumbers.TabIndex = 0;
-
-            // Кнопка вычисления
-            this.btnCalculate = new Button();
-            this.btnCalculate.Location = new Point(15, 130);
-            this.btnCalculate.Size = new Size(120, 30);
-            this.btnCalculate.Text = "Вычислить произведение";
-            this.btnCalculate.Click += new EventHandler(this.btnCalculate_Click);
-
-            // Кнопка очистки
-            this.btnClear = new Button();
-            this.btnClear.Location = new Point(145, 130);
-            this.btnClear.Size = new Size(120, 30);
-            this.btnClear.Text = "Очистить";
-            this.btnClear.Click += new EventHandler(this.btnClear_Click);
-
-            // Метка результата
-            this.lblResult = new Label();
-            this.lblResult.AutoSize = true;
-            this.lblResult.Font = new Font("Microsoft Sans Serif", 10F);
-            this.lblResult.Location = new Point(12, 170);
-            this.lblResult.Text = "Результат";
-            this.lblResult.Size = new Size(200, 30);
-
-            // Метка подсказки
-            this.lblPrompt = new Label();
-            this.lblPrompt.AutoSize = true;
-            this.lblPrompt.Location = new Point(12, 15);
-            this.lblPrompt.Text = "Введите числа через пробел или запятую (a1 a2 ... an):";
-            this.lblPrompt.Size = new Size(270, 13);
-
-            // Добавление элементов на форму
-            this.Controls.AddRange(new Control[] {
-                this.txtNumbers, this.btnCalculate, this.btnClear,
-                this.lblResult, this.lblPrompt
-            });
-
-            this.ResumeLayout(false);
-        }
-
-        private void btnCalculate_Click(object sender, EventArgs e)
-        {
-            try
+            List<PointF> points = new List<PointF>();
+            
+            // Вычисляем точки графика
+            for (double x = x0; x >= xk; x += dx)
             {
-                // Получаем числа из текстового поля
-                string input = txtNumbers.Text;
-                
-                // Разбиваем строку на числа, разделенные пробелами/запятыми
-                string[] numberStrings = input.Split(new char[] { ' ', ',', ';', '\t' }, 
-                                                    StringSplitOptions.RemoveEmptyEntries);
-                
-                // Преобразуем строки в действительные числа
-                double[] numbers = numberStrings.Select(s => double.Parse(s)).ToArray();
-                
-                // Проверяем, что n > 0
-                if (numbers.Length == 0)
+                double y = 1e-3 * Math.Pow(Math.Abs(x), 2.5) + Math.Log(Math.Abs(x + b));
+                points.Add(new PointF((float)x, (float)y));
+            }
+
+            // Находим минимальные и максимальные значения
+            float minX = float.MaxValue;
+            float maxX = float.MinValue;
+            float minY = float.MaxValue;
+            float maxY = float.MinValue;
+
+            foreach (PointF p in points)
+            {
+                if (p.X < minX) minX = p.X;
+                if (p.X > maxX) maxX = p.X;
+                if (p.Y < minY) minY = p.Y;
+                if (p.Y > maxY) maxY = p.Y;
+            }
+
+            // Создаем матрицу преобразования
+            RectangleF graphArea = new RectangleF(minX, minY, maxX - minX, maxY - minY);
+            RectangleF displayArea = new RectangleF(50, 50, this.ClientSize.Width - 100, this.ClientSize.Height - 100);
+
+            // Рисуем оси координат
+            DrawAxes(e.Graphics, graphArea, displayArea);
+            
+            // Рисуем график
+            using (Pen pen = new Pen(Color.Blue, 2))
+            {
+                for (int i = 0; i < points.Count - 1; i++)
                 {
-                    MessageBox.Show("Введите хотя бы одно число!", "Ошибка", 
-                                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
+                    PointF p1 = TransformPoint(points[i], graphArea, displayArea);
+                    PointF p2 = TransformPoint(points[i + 1], graphArea, displayArea);
+                    e.Graphics.DrawLine(pen, p1, p2);
                 }
-
-                // Вычисляем произведение
-                double product = 1.0;
-                foreach (double number in numbers)
-                {
-                    product *= number;
-                }
-
-                // Выводим результат
-                lblResult.Text = $"Произведение чисел: {product:F6}";
-            }
-            catch (FormatException)
-            {
-                MessageBox.Show("Ошибка в формате чисел! Убедитесь, что введены только числа.", 
-                                "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            catch (OverflowException)
-            {
-                MessageBox.Show("Слишком большое или маленькое число!", 
-                                "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Произошла ошибка: {ex.Message}", 
-                                "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void btnClear_Click(object sender, EventArgs e)
+        private PointF TransformPoint(PointF point, RectangleF graphArea, RectangleF displayArea)
         {
-            txtNumbers.Clear();
-            lblResult.Text = "Результат";
+            float x = displayArea.Left + (point.X - graphArea.Left) * displayArea.Width / graphArea.Width;
+            float y = displayArea.Bottom - (point.Y - graphArea.Bottom) * displayArea.Height / graphArea.Height;
+            return new PointF(x, y);
         }
 
-        [STAThread]
-        static void Main()
+        private void DrawAxes(Graphics g, RectangleF graphArea, RectangleF displayArea)
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+            using (Pen axisPen = new Pen(Color.Black, 1))
+            {
+                // Ось Y
+                PointF yStart = TransformPoint(new PointF(0, graphArea.Top), graphArea, displayArea);
+                PointF yEnd = TransformPoint(new PointF(0, graphArea.Bottom), graphArea, displayArea);
+                g.DrawLine(axisPen, yStart, yEnd);
+
+                // Ось X
+                PointF xStart = TransformPoint(new PointF(graphArea.Left, 0), graphArea, displayArea);
+                PointF xEnd = TransformPoint(new PointF(graphArea.Right, 0), graphArea, displayArea);
+                g.DrawLine(axisPen, xStart, xEnd);
+            }
         }
     }
 }
