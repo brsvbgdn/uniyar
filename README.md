@@ -1,111 +1,87 @@
 using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
 
-namespace SimpleFunctionGraph
+namespace FunctionChartApp
 {
     public partial class Form1 : Form
     {
+        private Chart chart1;
+        
         public Form1()
         {
             InitializeComponent();
+            InitializeChart();
+            PlotFunction();
         }
 
         private void InitializeComponent()
         {
             this.SuspendLayout();
             this.ClientSize = new System.Drawing.Size(1000, 700);
-            this.Text = "Graph of Function";
-            this.Paint += new PaintEventHandler(this.Form1_Paint);
+            this.Text = "Graph of Function y = 10^-3 * |x|^(5/2) + ln|x+35.4|";
+            this.StartPosition = FormStartPosition.CenterScreen;
             this.ResumeLayout(false);
         }
 
-        private void Form1_Paint(object sender, PaintEventArgs e)
+        private void InitializeChart()
         {
-            e.Graphics.Clear(Color.White);
+            chart1 = new Chart();
+            chart1.Dock = DockStyle.Fill;
             
+            ChartArea chartArea = new ChartArea();
+            chartArea.AxisX.Title = "X";
+            chartArea.AxisY.Title = "Y";
+            chartArea.AxisX.MajorGrid.Enabled = true;
+            chartArea.AxisY.MajorGrid.Enabled = true;
+            chart1.ChartAreas.Add(chartArea);
+
+            Series series = new Series();
+            series.Name = "Function";
+            series.ChartType = SeriesChartType.Line;
+            series.Color = System.Drawing.Color.Red;
+            series.BorderWidth = 2;
+            series.MarkerStyle = MarkerStyle.Circle;
+            series.MarkerSize = 5;
+            series.MarkerColor = System.Drawing.Color.Blue;
+            
+            chart1.Series.Add(series);
+
+            Legend legend = new Legend();
+            legend.Docking = Docking.Top;
+            chart1.Legends.Add(legend);
+
+            this.Controls.Add(chart1);
+        }
+
+        private void PlotFunction()
+        {
             double x0 = 1.75;
             double xk = -2.5;
             double dx = -0.25;
             double b = 35.4;
 
-            List<PointF> points = new List<PointF>();
-            
-            // Вычисляем точки
+            chart1.Series["Function"].Points.Clear();
+
             for (double x = x0; x >= xk; x += dx)
             {
                 try
                 {
                     double y = 1e-3 * Math.Pow(Math.Abs(x), 2.5) + Math.Log(Math.Abs(x + b));
-                    points.Add(new PointF((float)x, (float)y));
+                    chart1.Series["Function"].Points.AddXY(x, y);
                 }
-                catch { }
-            }
-
-            if (points.Count == 0) return;
-
-            // Рисуем оси
-            DrawAxes(e.Graphics);
-            
-            // Рисуем график
-            using (Pen pen = new Pen(Color.Red, 2))
-            {
-                for (int i = 0; i < points.Count - 1; i++)
+                catch (Exception ex)
                 {
-                    PointF p1 = ScalePoint(points[i]);
-                    PointF p2 = ScalePoint(points[i + 1]);
-                    e.Graphics.DrawLine(pen, p1, p2);
+                    Console.WriteLine($"Error at x={x}: {ex.Message}");
                 }
             }
 
-            // Подписи
-            using (Font font = new Font("Arial", 10))
-            using (Brush brush = new SolidBrush(Color.Black))
-            {
-                e.Graphics.DrawString("y = 10⁻³ * |x|^(5/2) + ln|x+35.4|", 
-                    new Font("Arial", 12, FontStyle.Bold), brush, 20, 20);
-            }
-        }
-
-        private void DrawAxes(Graphics g)
-        {
-            int centerX = this.ClientSize.Width / 2;
-            int centerY = this.ClientSize.Height / 2;
-            float scale = 50; // Масштаб
-
-            using (Pen axisPen = new Pen(Color.Black, 2))
-            using (Pen gridPen = new Pen(Color.LightGray, 1))
-            {
-                // Ось X
-                g.DrawLine(axisPen, 0, centerY, this.ClientSize.Width, centerY);
-                // Ось Y
-                g.DrawLine(axisPen, centerX, 0, centerX, this.ClientSize.Height);
-
-                // Сетка
-                for (int x = -10; x <= 10; x++)
-                {
-                    int screenX = centerX + (int)(x * scale);
-                    g.DrawLine(gridPen, screenX, 0, screenX, this.ClientSize.Height);
-                }
-                for (int y = -10; y <= 10; y++)
-                {
-                    int screenY = centerY + (int)(y * scale);
-                    g.DrawLine(gridPen, 0, screenY, this.ClientSize.Width, screenY);
-                }
-            }
-        }
-
-        private PointF ScalePoint(PointF point)
-        {
-            int centerX = this.ClientSize.Width / 2;
-            int centerY = this.ClientSize.Height / 2;
-            float scale = 50; // Масштаб
-
-            return new PointF(
-                centerX + point.X * scale,
-                centerY - point.Y * scale
-            );
+            chart1.Titles.Clear();
+            Title title = new Title("y = 10⁻³ * |x|^(5/2) + ln|x+35.4|", 
+                                  Docking.Top, 
+                                  new System.Drawing.Font("Arial", 12, System.Drawing.FontStyle.Bold), 
+                                  System.Drawing.Color.Black);
+            chart1.Titles.Add(title);
         }
 
         [STAThread]
