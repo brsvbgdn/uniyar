@@ -10,9 +10,18 @@ namespace FunctionGraph
         public Form1()
         {
             InitializeComponent();
-            this.Size = new Size(800, 600);
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            this.AutoScaleDimensions = new SizeF(6F, 13F);
+            this.AutoScaleMode = AutoScaleMode.Font;
+            this.ClientSize = new Size(800, 600);
+            this.Name = "Form1";
             this.Text = "Graph of Function";
-            this.Paint += new PaintEventHandler(Form1_Paint);
+            this.Paint += new PaintEventHandler(this.Form1_Paint);
+            this.ResumeLayout(false);
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
@@ -27,9 +36,19 @@ namespace FunctionGraph
             // Вычисляем точки графика
             for (double x = x0; x >= xk; x += dx)
             {
-                double y = 1e-3 * Math.Pow(Math.Abs(x), 2.5) + Math.Log(Math.Abs(x + b));
-                points.Add(new PointF((float)x, (float)y));
+                try
+                {
+                    double y = 1e-3 * Math.Pow(Math.Abs(x), 2.5) + Math.Log(Math.Abs(x + b));
+                    points.Add(new PointF((float)x, (float)y));
+                }
+                catch (Exception ex)
+                {
+                    // Игнорируем точки, где функция не определена
+                    Console.WriteLine($"Error at x={x}: {ex.Message}");
+                }
             }
+
+            if (points.Count == 0) return;
 
             // Находим минимальные и максимальные значения
             float minX = float.MaxValue;
@@ -44,6 +63,13 @@ namespace FunctionGraph
                 if (p.Y < minY) minY = p.Y;
                 if (p.Y > maxY) maxY = p.Y;
             }
+
+            // Добавляем немного отступа
+            float padding = 0.1f;
+            minX -= padding;
+            maxX += padding;
+            minY -= padding;
+            maxY += padding;
 
             // Создаем матрицу преобразования
             RectangleF graphArea = new RectangleF(minX, minY, maxX - minX, maxY - minY);
@@ -62,6 +88,14 @@ namespace FunctionGraph
                     e.Graphics.DrawLine(pen, p1, p2);
                 }
             }
+
+            // Подписываем оси
+            using (Font font = new Font("Arial", 8))
+            using (Brush brush = new SolidBrush(Color.Black))
+            {
+                e.Graphics.DrawString("X", font, brush, this.ClientSize.Width - 30, displayArea.Bottom + 10);
+                e.Graphics.DrawString("Y", font, brush, displayArea.Left - 20, 10);
+            }
         }
 
         private PointF TransformPoint(PointF point, RectangleF graphArea, RectangleF displayArea)
@@ -75,16 +109,30 @@ namespace FunctionGraph
         {
             using (Pen axisPen = new Pen(Color.Black, 1))
             {
-                // Ось Y
-                PointF yStart = TransformPoint(new PointF(0, graphArea.Top), graphArea, displayArea);
-                PointF yEnd = TransformPoint(new PointF(0, graphArea.Bottom), graphArea, displayArea);
-                g.DrawLine(axisPen, yStart, yEnd);
+                // Ось Y (если попадает в видимую область)
+                if (graphArea.Left <= 0 && graphArea.Right >= 0)
+                {
+                    PointF yStart = TransformPoint(new PointF(0, graphArea.Top), graphArea, displayArea);
+                    PointF yEnd = TransformPoint(new PointF(0, graphArea.Bottom), graphArea, displayArea);
+                    g.DrawLine(axisPen, yStart, yEnd);
+                }
 
-                // Ось X
-                PointF xStart = TransformPoint(new PointF(graphArea.Left, 0), graphArea, displayArea);
-                PointF xEnd = TransformPoint(new PointF(graphArea.Right, 0), graphArea, displayArea);
-                g.DrawLine(axisPen, xStart, xEnd);
+                // Ось X (если попадает в видимую область)
+                if (graphArea.Top <= 0 && graphArea.Bottom >= 0)
+                {
+                    PointF xStart = TransformPoint(new PointF(graphArea.Left, 0), graphArea, displayArea);
+                    PointF xEnd = TransformPoint(new PointF(graphArea.Right, 0), graphArea, displayArea);
+                    g.DrawLine(axisPen, xStart, xEnd);
+                }
             }
+        }
+
+        [STAThread]
+        static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new Form1());
         }
     }
 }
